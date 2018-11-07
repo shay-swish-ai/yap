@@ -6,7 +6,7 @@ yap is yet another parser written in Go. It was implemented to test the hypothes
 yap contains an implementation of the framework and parser of zpar from Z&N 2011 ([Transition-based Dependency Parsing with Rich Non-local Features by Zhang and Nivre, 2011](http://www.aclweb.org/anthology/P11-2033.pdf)) with flags for precise output parity (i.e. bug replication), trained on the morphologically disambiguated
 Modern Hebrew treebank.
 
-A live demo of parsing Hebrew texts is provided [here](onlp.openu.ac.il). 
+A live demo of parsing Hebrew texts is provided [here](http://onlp.openu.org.il/). 
 
 yap is no longer under development. It is currently supported as part of the ONLP lab tool kit.
 
