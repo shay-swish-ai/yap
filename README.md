@@ -1,22 +1,34 @@
 yap - Yet Another Parser
 ===========
 
-yap is yet another parser written in Go. It was implemented to test the
-hypothesis of my MSc thesis on Joint Morpho-Syntactic Processing of MRLs in a
-Transition Based Framework at IDC Herzliya with my advisor, Reut Tsarfaty.
-A [paper on the morphological analysis and disambiguation aspect for Modern Hebrew
-and Universal Dependencies](http://www.aclweb.org/anthology/C/C16/C16-1033.pdf) was accepted to COLING 2016
-
-yap is currently provided with a model for Modern Hebrew, trained on a heavily updated
-version of the SPMRL 2014 Hebrew treebank. We hope to publish the updated
-treebank soon as well.
+yap is yet another parser written in Go. It was implemented to test the hypothesis on Joint Morpho-Syntactic Processing of MRLs in a Transition Based Framework. The parser was written as part Amir More's MSc thesis at IDC Herzliya under the supervision of Dr. Reut Tsarfaty from the Open University of Israel. The models and training regimes have been tuned and improved by Amit Seker from the Open University.
 
 yap contains an implementation of the framework and parser of zpar from Z&N 2011 ([Transition-based Dependency Parsing with Rich Non-local Features by Zhang and Nivre, 2011](http://www.aclweb.org/anthology/P11-2033.pdf)) with flags for precise output parity (i.e. bug replication), trained on the morphologically disambiguated
 Modern Hebrew treebank.
 
-yap is under active development and documentation.
+A live demo of parsing Hebrew texts is provided [here](onlp.openu.ac.il). 
 
-***DO NOT USE FOR PRODUCTION***
+yap is no longer under development. It is currently supported as part of the ONLP lab tool kit.
+
+Publications
+------------
+
+A [paper on the morphological analysis and disambiguation aspect for Modern Hebrew
+and Universal Dependencies](http://www.aclweb.org/anthology/C/C16/C16-1033.pdf) was presented at COLING 2016.
+The complete joint morphosyntactic model, along with  benchmark experiments and error analysis are available in a TACL paper accepted for publication in 2018, to be uploaded soon. 
+
+yap was also used for parsing Hebrew (as well as many other languages) in the following academic studies:
+- The ONLP lab at the CoNLL shared Task on Raw-to-Dependencies parsing at CoNLL 2017
+- [The ONLP lab at the CoNLL shared Task](http://aclweb.org/anthology/K18-2021) on Raw-to-Dependencies parsing at CoNLL 2017
+- [The Hebrew Universal Dependencies Treebank](http://aclweb.org/anthology/W18-6016) 
+- [Neural Sentiment Analysis for Hebrew](https://aclanthology.info/papers/C18-1190/c18-1190)
+
+
+Licensing Highlights:
+---------------------
+- The code is provided with a permissive license (apache 2.0), as is, and without warranties. 
+- The data and lexicon the parser uses belong to [MILA](http://www.mila.cs.technion.ac.il/) at the Technion
+- For *production* use, please check with Prof. Alon Itay from The technion data/lexicon license conditions.
 
 Requirements
 -----------
