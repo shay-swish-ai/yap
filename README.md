@@ -19,7 +19,7 @@ The complete joint morphosyntactic model, along with  benchmark experiments and 
 
 yap was also used for parsing Hebrew, as well as many other languages, in the following academic studies:
 - The ONLP lab at the CoNLL shared Task on Raw-to-Dependencies parsing at CoNLL 2017
-- [The ONLP lab at the CoNLL shared Task](http://aclweb.org/anthology/K18-2021) on Raw-to-Dependencies parsing at CoNLL 2017
+- [The ONLP lab at the CoNLL shared Task](http://aclweb.org/anthology/K18-2021) on Raw-to-Dependencies parsing at CoNLL 2018
 - [The Hebrew Universal Dependencies Treebank](http://aclweb.org/anthology/W18-6016) at UDW 2018
 - [Neural Sentiment Analysis for Hebrew](https://aclanthology.info/papers/C18-1190/c18-1190) at COLING 2018
 
