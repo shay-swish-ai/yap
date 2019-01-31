@@ -29,6 +29,7 @@ import (
 	// "strings"
 
 	"github.com/gonuts/commander"
+	"yap/nlp/format/conllu"
 )
 
 func init() {
@@ -42,8 +43,9 @@ var (
 	parseOut bool = false
 
 	// processing options
-	Iterations, BeamSize int
-	DepBeamSize          int
+	//Iterations, BeamSize int
+	Iterations			int
+	BeamSize          int
 	ConcurrentBeam       bool
 	NumFeatures          int
 	UsePOP               bool
@@ -54,9 +56,13 @@ var (
 	ERel, ETrans, EWord, EPOS, EWPOS, EMHost, EMSuffix *util.EnumSet
 	ETokens                                            *util.EnumSet
 	EMorphProp                                         *util.EnumSet
+	//DepERel, DepETrans, DepEWord, DepEPOS, DepEWPOS, DepEMHost, DepEMSuffix *util.EnumSet
+	//DepETokens                                            *util.EnumSet
+	//DepEMorphProp                                         *util.EnumSet
 
 	// enumeration offsets of transitions
 	SH, RE, PR, LA, RA, IDLE, POP, MD transition.Transition
+	//DepSH, DepRE, DepPR, DepLA, DepRA, DepIDLE, DepPOP, DepMD transition.Transition
 
 	// file names
 	tConll           string
@@ -69,16 +75,16 @@ var (
 	outLat, outSeg   string
 	outMap           string
 	outConll         string
-	modelFile        string
-	modelName        string
-	featuresFile     string
-	labelsFile       string
+	//modelFile        string
+	//modelName        string
+	//featuresFile     string
+	//labelsFile       string
 
 	AlignBeam             bool
 	AverageScores         bool
 	alignAverageParseOnly bool
 
-	arcSystemStr string
+	//ArcSystemStr string
 
 	// string arrays can't be const, so let it be a var
 	DEFAULT_MODEL_DIRS = []string{".", "data"}
@@ -108,7 +114,13 @@ func WriteModel(file string, data *Serialization) {
 		log.Fatalln("Failed creating model file", file, err)
 		return
 	}
-	defer fObj.Close()
+	defer func() {
+		fObj.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	//defer fObj.Close()
 	writer := gob.NewEncoder(fObj)
 	err = writer.Encode(data)
 	if err != nil {
@@ -134,7 +146,7 @@ func SetupRelationEnum(labels []string) {
 	if ERel != nil {
 		return
 	}
-	ERel = util.NewEnumSet(len(labels)+1, "ERel")
+	ERel = util.NewEnumSet(len(labels) + 1)
 	ERel.Add(nlp.DepRel(nlp.ROOT_LABEL))
 	for _, label := range labels {
 		ERel.Add(nlp.DepRel(label))
@@ -143,7 +155,7 @@ func SetupRelationEnum(labels []string) {
 }
 
 func SetupTransEnum(relations []string) {
-	ETrans = util.NewEnumSet((len(relations)+1)*2+2, "ETrans")
+	ETrans = util.NewEnumSet((len(relations)+1)*2 + 2)
 	_, _ = ETrans.Add("IDLE") // dummy no action transition for zpar equivalence
 	iSH, _ := ETrans.Add("SH")
 	iRE, _ := ETrans.Add("RE")
@@ -166,7 +178,7 @@ func SetupTransEnum(relations []string) {
 }
 
 func SetupMorphTransEnum(relations []string) {
-	ETrans = util.NewEnumSet((len(relations)+1)*2+2+APPROX_MORPH_TRANSITIONS, "ETrans")
+	ETrans = util.NewEnumSet((len(relations)+1)*2 + 2 + APPROX_MORPH_TRANSITIONS)
 	_, _ = ETrans.Add("NO") // dummy for 0 action
 	iSH, _ := ETrans.Add("SH")
 	iRE, _ := ETrans.Add("RE")
@@ -208,8 +220,8 @@ func VerifyExists(filename string) bool {
 func VerifyFlags(cmd *commander.Command, required []string) {
 	for _, flag := range required {
 		f := cmd.Flag.Lookup(flag)
-		if f == nil || f.Value.String() == "" {
-			log.Printf("Required flag %s not set", flag)
+		if f.Value.String() == "" {
+			log.Printf("Required flag %s not set", f.Name)
 			cmd.Usage()
 			os.Exit(1)
 		}
@@ -218,7 +230,7 @@ func VerifyFlags(cmd *commander.Command, required []string) {
 
 func SetupExtractor(setup *transition.FeatureSetup, transTypes []byte) *transition.GenericExtractor {
 	extractor := &transition.GenericExtractor{
-		EFeatures:  util.NewEnumSet(setup.NumFeatures(), "EFeatures"),
+		EFeatures:  util.NewEnumSet(setup.NumFeatures()),
 		Concurrent: false,
 		EWord:      EWord,
 		EPOS:       EPOS,
@@ -615,7 +627,7 @@ func MakeMorphEvalStopCondition(instances []interface{}, goldInstances []interfa
 	}
 }
 
-func MakeDepEvalStopCondition(instances []interface{}, goldInstances []interface{}, testInstances []interface{}, parser Parser, goldDecoder perceptron.InstanceDecoder, beamSize int) perceptron.StopCondition {
+func MakeDepEvalStopCondition(instances []interface{}, goldInstances []interface{}, testInstances []interface{}, morphInstances []interface{}, goldMorphInstances []interface{}, testMorphInstances []interface{}, parser Parser, goldDecoder perceptron.InstanceDecoder, beamSize int) perceptron.StopCondition {
 	var (
 		equalIterations     int
 		prevResult          float64
@@ -677,14 +689,26 @@ func MakeDepEvalStopCondition(instances []interface{}, goldInstances []interface
 			continuousDecreases = 0
 		}
 		prevResult = curResult
-		graphs := conll.Graph2ConllCorpus(parsed, EMHost, EMSuffix)
-		conll.WriteFile(fmt.Sprintf("interm.i%v.b%v.%v", curIteration, beamSize, outConll), graphs)
+		if useConllU {
+			graphs := conllu.Graph2ConllUCorpus(parsed, EMHost, EMSuffix)
+			morphGraphs := conllu.MergeGraphAndMorphCorpus(graphs, morphInstances)
+			conllu.WriteFile(fmt.Sprintf("interm.i%v.b%v.%v", curIteration, beamSize, outConll), morphGraphs)
+		} else {
+			graphs := conll.Graph2ConllCorpus(parsed, EMHost, EMSuffix)
+			conll.WriteFile(fmt.Sprintf("interm.i%v.b%v.%v", curIteration, beamSize, outConll), graphs)
+		}
 		if testInstances != nil {
 			log.Println("Parsing test")
 			testParsed := Parse(testInstances, parser)
 			log.Println("Writing test results to", fmt.Sprintf("test.i%v.b%v.%v", curIteration, beamSize, test))
-			testGraphs := conll.Graph2ConllCorpus(testParsed, EMHost, EMSuffix)
-			conll.WriteFile(fmt.Sprintf("test.i%v.b%v.conll", curIteration, beamSize), testGraphs)
+			if useConllU {
+				testGraphs := conllu.Graph2ConllUCorpus(testParsed, EMHost, EMSuffix)
+				testMorphGraphs := conllu.MergeGraphAndMorphCorpus(testGraphs, morphInstances)
+				conllu.WriteFile(fmt.Sprintf("test.i%v.b%v.conll", curIteration, beamSize), testMorphGraphs)
+			} else {
+				testGraphs := conll.Graph2ConllCorpus(testParsed, EMHost, EMSuffix)
+				conll.WriteFile(fmt.Sprintf("test.i%v.b%v.conll", curIteration, beamSize), testGraphs)
+			}
 		}
 		return !retval
 	}
@@ -814,21 +838,11 @@ func MakeJointEvalStopCondition(instances []interface{}, goldInstances []interfa
 	}
 }
 
-func writeEnums(enums []*util.EnumSet) {
-	log.Println("Enums:")
-	for _, e := range enums {
-		log.Println(e.Name, e.Len())
-		for i, val := range e.Index {
-			log.Printf("\t%d %v\n", i, val)
-		}
-	}
-}
 func serialize(perceptronModel perceptron.Model, iteration, generations int) string {
 	serialization := &Serialization{
 		perceptronModel.(*model.AvgMatrixSparse).Serialize(generations),
 		EWord, EPOS, EWPOS, EMHost, EMSuffix, EMorphProp, ETrans, ETokens,
 	}
-	// writeEnums([]*util.EnumSet{EWord, EPOS, EWPOS, EMHost, EMSuffix, EMorphProp, ETrans, ETokens, ERel})
 	modelFile := fmt.Sprintf("model.temp.i%d", iteration)
 	WriteModel(modelFile, serialization)
 	return modelFile

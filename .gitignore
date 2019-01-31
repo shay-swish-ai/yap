@@ -43,6 +43,7 @@ oldlogs/
 
 # IDE folders
 .ropeproject/
+.idea/workspace.xml
 
 # folders i don't want to see
 quiet/

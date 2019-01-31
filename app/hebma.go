@@ -21,27 +21,33 @@ import (
 )
 
 var (
-	prefixFile, lexiconFile string
-	xliter8out, alwaysnnp   bool
-	nnpnofeats              bool
-	showoov                 bool
+	HebMaPrefixFile, HebMaLexiconFile string
+	HebMaXliter8out, HebMaAlwaysnnp   bool
+	HebMaNnpnofeats              bool
+	HebMaShowoov                 bool
 	outJSON                 bool
-	DEFAULT_DATA_DIRS       = []string{".", "data/bgulex"}
+	HEB_MA_DEFAULT_DATA_DIRS       = []string{".", "data/bgulex"}
 )
 
 func HebMAConfigOut() {
 	log.Println("Configuration")
-	log.Printf("Heb Lexicon:\t\t%s", prefixFile)
-	log.Printf("Heb Prefix:\t\t%s", lexiconFile)
+	log.Printf("Heb Lexicon:\t\t%s", HebMaPrefixFile)
+	log.Printf("Heb Prefix:\t\t%s", HebMaLexiconFile)
 	log.Printf("OOV Strategy:\t%v", "Const:NNP")
-	log.Printf("xliter8 out:\t\t%v", xliter8out)
+	log.Printf("xliter8 out:\t\t%v", HebMaXliter8out)
 	log.Println()
 	if useConllU {
-		log.Printf("CoNLL-U Input:\t%s", conlluFile)
+		if len(conlluFile) > 0 {
+			log.Printf("CoNLL-U Input:\t%s", conlluFile)
+		}
 	} else {
-		log.Printf("Raw Input:\t\t%s", inRawFile)
+		if len(inRawFile) > 0 {
+			log.Printf("Raw Input:\t\t%s", inRawFile)
+		}
 	}
-	log.Printf("Output:\t\t%s", outLatticeFile)
+	if len(outLatticeFile) > 0 {
+		log.Printf("Output:\t\t%s", outLatticeFile)
+	}
 	log.Println()
 }
 
@@ -54,15 +60,15 @@ func HebMA(cmd *commander.Command, args []string) error {
 	} else {
 		REQUIRED_FLAGS = []string{"raw", "out"}
 	}
-	prefixLocation, found := util.LocateFile(prefixFile, DEFAULT_DATA_DIRS)
+	prefixLocation, found := util.LocateFile(HebMaPrefixFile, HEB_MA_DEFAULT_DATA_DIRS)
 	if found {
-		prefixFile = prefixLocation
+		HebMaPrefixFile = prefixLocation
 	} else {
 		REQUIRED_FLAGS = append(REQUIRED_FLAGS, "prefix")
 	}
-	lexiconLocation, found := util.LocateFile(lexiconFile, DEFAULT_DATA_DIRS)
+	lexiconLocation, found := util.LocateFile(HebMaLexiconFile, HEB_MA_DEFAULT_DATA_DIRS)
 	if found {
-		lexiconFile = lexiconLocation
+		HebMaLexiconFile = lexiconLocation
 	} else {
 		REQUIRED_FLAGS = append(REQUIRED_FLAGS, "lexicon")
 	}
@@ -81,9 +87,9 @@ func HebMA(cmd *commander.Command, args []string) error {
 	maData := new(ma.BGULex)
 	maData.MAType = outFormat
 	log.Println("Reading Morphological Analyzer BGU Prefixes")
-	maData.LoadPrefixes(prefixFile)
+	maData.LoadPrefixes(HebMaPrefixFile)
 	log.Println("Reading Morphological Analyzer BGU Lexicon")
-	maData.LoadLex(lexiconFile, nnpnofeats)
+	maData.LoadLex(HebMaLexiconFile, HebMaNnpnofeats)
 	log.Println()
 	var (
 		sents        []nlp.BasicSentence
@@ -112,12 +118,6 @@ func HebMA(cmd *commander.Command, args []string) error {
 				close(sentsStream)
 			}()
 
-		} else {
-			log.Println("Piping raw file to analyzer", inRawFile)
-			sentsStream, err = raw.ReadFileAsStream(inRawFile, limit)
-			if err != nil {
-				panic(fmt.Sprintf("Failed reading raw file - %v", err))
-			}
 		}
 	} else {
 		if useConllU {
@@ -146,8 +146,8 @@ func HebMA(cmd *commander.Command, args []string) error {
 	stats := new(ma.AnalyzeStats)
 	stats.Init()
 	maData.Stats = stats
-	maData.AlwaysNNP = alwaysnnp
-	maData.LogOOV = showoov
+	maData.AlwaysNNP = HebMaAlwaysnnp
+	maData.LogOOV = HebMaShowoov
 	prefix := log.Prefix()
 	if Stream {
 		lattices := make(chan nlp.LatticeSentence, 2)
@@ -168,7 +168,7 @@ func HebMA(cmd *commander.Command, args []string) error {
 		}()
 
 		var hebrew xliter8.Interface
-		if xliter8out {
+		if HebMaXliter8out {
 			hebrew = &xliter8.Hebrew{}
 		}
 		output := lattice.Sentence2LatticeStream(lattices, hebrew)
@@ -185,7 +185,7 @@ func HebMA(cmd *commander.Command, args []string) error {
 			lattices[i], oovInd[i] = maData.Analyze(sent.Tokens())
 		}
 		var hebrew xliter8.Interface
-		if xliter8out {
+		if HebMaXliter8out {
 			hebrew = &xliter8.Hebrew{}
 		}
 		output := lattice.Sentence2LatticeCorpus(lattices, hebrew)
@@ -227,16 +227,16 @@ run lexicon-based morphological analyzer on raw input
 `,
 		Flag: *flag.NewFlagSet("ma", flag.ExitOnError),
 	}
-	cmd.Flag.StringVar(&prefixFile, "prefix", "bgupreflex_withdef.utf8.hr", "Prefix file for morphological analyzer")
-	cmd.Flag.StringVar(&lexiconFile, "lexicon", "bgulex.utf8.hr", "Lexicon file for morphological analyzer")
+	cmd.Flag.StringVar(&HebMaPrefixFile, "prefix", "bgupreflex_withdef.utf8.hr", "Prefix file for morphological analyzer")
+	cmd.Flag.StringVar(&HebMaLexiconFile, "lexicon", "bgulex.utf8.hr", "Lexicon file for morphological analyzer")
 	cmd.Flag.StringVar(&inRawFile, "raw", "", "Input raw (tokenized) file")
 	cmd.Flag.StringVar(&conlluFile, "conllu", "", "CoNLL-U-format input file")
 	cmd.Flag.StringVar(&outLatticeFile, "out", "", "Output lattice file")
-	cmd.Flag.BoolVar(&xliter8out, "xliter8out", false, "Transliterate output lattice file")
-	cmd.Flag.BoolVar(&alwaysnnp, "alwaysnnp", false, "Always add NNP to tokens and prefixed subtokens")
-	cmd.Flag.BoolVar(&nnpnofeats, "addnnpnofeats", false, "Add NNP in lex but without features")
+	cmd.Flag.BoolVar(&HebMaXliter8out, "xliter8out", false, "Transliterate output lattice file")
+	cmd.Flag.BoolVar(&HebMaAlwaysnnp, "alwaysnnp", false, "Always add NNP to tokens and prefixed subtokens")
+	cmd.Flag.BoolVar(&HebMaNnpnofeats, "addnnpnofeats", false, "Add NNP in lex but without features")
 	cmd.Flag.IntVar(&limit, "limit", 0, "Limit input set")
-	cmd.Flag.BoolVar(&showoov, "showoov", false, "Output OOV tokens")
+	cmd.Flag.BoolVar(&HebMaShowoov, "showoov", false, "Output OOV tokens")
 	cmd.Flag.StringVar(&oovFile, "oov", "", "Output OOV File")
 	cmd.Flag.BoolVar(&lex.LOG_FAILURES, "showlexerror", false, "Log errors encountered when loading the lexicon")
 	cmd.Flag.StringVar(&outFormat, "format", "spmrl", "Output lattice format [spmrl|ud]")

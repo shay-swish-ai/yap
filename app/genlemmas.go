@@ -19,7 +19,7 @@ import (
 
 func GenLemmasConfigOut() {
 	log.Println("Configuration")
-	log.Printf("Parameter Func:\t%v", paramFuncName)
+	log.Printf("Parameter Func:\t%v", MdParamFuncName)
 
 	log.Println()
 	log.Println("Data")
@@ -92,9 +92,9 @@ func genLemmasInstances(goldLats, ambLats []interface{}) []*disambig.MDConfig {
 }
 
 func GenLemmas(cmd *commander.Command, args []string) error {
-	paramFunc, exists := nlp.MDParams[paramFuncName]
+	paramFunc, exists := nlp.MDParams[MdParamFuncName]
 	if !exists {
-		log.Fatalln("Param Func", paramFuncName, "does not exist")
+		log.Fatalln("Param Func", MdParamFuncName, "does not exist")
 	}
 
 	REQUIRED_FLAGS := []string{"d", "l"}
@@ -174,7 +174,7 @@ gets ambiguous lemmas in the hebrew tb for gold paths
 	cmd.Flag.StringVar(&tLatAmb, "l", "", "Ambiguous Lattices File")
 	cmd.Flag.StringVar(&inRawFile, "r", "", "Input raw (tokenized) file")
 	cmd.Flag.StringVar(&outMap, "om", "", "Output Mapping File")
-	cmd.Flag.StringVar(&paramFuncName, "p", "Funcs_Main_POS_Both_Prop", "Param Func types: ["+nlp.AllParamFuncNames+"]")
+	cmd.Flag.StringVar(&MdParamFuncName, "p", "Funcs_Main_POS_Both_Prop", "Param Func types: ["+nlp.AllParamFuncNames+"]")
 	cmd.Flag.IntVar(&limit, "limit", 0, "limit training set")
 	return cmd
 }

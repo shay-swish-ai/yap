@@ -14,7 +14,7 @@ import (
 
 func GoldSegConfigOut() {
 	log.Println("Configuration")
-	log.Printf("Infuse Gold:\t\t%v", combineGold)
+	log.Printf("Infuse Gold:\t\t%v", MdCombineGold)
 	log.Printf("Parameter Func:\t%v", vmaParamFuncName)
 
 	log.Println()
@@ -153,7 +153,7 @@ gets ma without segmentation ambiguity
 	cmd.Flag.StringVar(&tLatDis, "d", "", "Disambiguated Lattices File")
 	cmd.Flag.StringVar(&tLatAmb, "l", "", "Ambiguous Lattices File")
 	cmd.Flag.StringVar(&outLatticeFile, "o", "", "Output Lattice File")
-	cmd.Flag.BoolVar(&combineGold, "infuse", false, "Infuse gold morphs into lattices")
+	cmd.Flag.BoolVar(&MdCombineGold, "infuse", false, "Infuse gold morphs into lattices")
 	cmd.Flag.StringVar(&vmaParamFuncName, "p", "Funcs_Main_POS_Both_Prop_WLemma", "Param Func types: ["+nlp.AllParamFuncNames+"]")
 	return cmd
 }

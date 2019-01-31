@@ -454,6 +454,11 @@ func (c *MDConfig) Address(location []byte, sourceOffset int) (int, bool, bool) 
 }
 
 func (c *MDConfig) Attribute(source byte, nodeID int, attribute []byte, transitions []int) (att interface{}, exists bool, isGenerator bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in MDConfig::Attribute", r)
+		}
+	}()
 	exists = true
 	switch source {
 	case 'M':

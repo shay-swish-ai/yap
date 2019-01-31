@@ -16,7 +16,6 @@ type EnumSet struct {
 	Enum   map[interface{}]int
 	Index  []interface{}
 	Frozen bool
-	Name   string
 }
 
 func (e *EnumSet) RebuildIndex() {
@@ -79,13 +78,12 @@ func (e *EnumSet) Print() {
 	}
 }
 
-func NewEnumSet(capacity int, name string) *EnumSet {
+func NewEnumSet(capacity int) *EnumSet {
 	e := &EnumSet{
 		sync.RWMutex{},
 		make(map[interface{}]int, capacity),
 		make([]interface{}, 0, capacity),
 		false,
-		name,
 	}
 	return e
 }

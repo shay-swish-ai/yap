@@ -806,7 +806,6 @@ func UDRead(r io.Reader, limit int) ([]Lattice, error) {
 		// TODO: fix to work with empty lines as new sentence indicator
 		if len(curLine) == 0 {
 			// store current sentence
-			// log.Println("Adding sentence", currentLatt)
 			sentences = append(sentences, currentLatt)
 			if limit > 0 && len(sentences) >= limit {
 				break

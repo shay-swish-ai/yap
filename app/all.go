@@ -22,7 +22,7 @@ var (
 	CPUProfile string
 )
 
-var AppCommands []*commander.Command = []*commander.Command{
+var AppCommands = []*commander.Command{
 	// MorphCmd(),
 	// DepEvalCmd(),
 	DepCmd(),
@@ -31,7 +31,6 @@ var AppCommands []*commander.Command = []*commander.Command{
 	MALearnCmd(),
 	MACmd(),
 	HebMACmd(),
-	FuseCmd(),
 	// ValidateMAGoldCmd(),
 	// GenLemmasCmd(),
 	// GenUnAmbLemmasCmd(),
@@ -53,7 +52,7 @@ func AllCommands() *commander.Command {
 	return cmd
 }
 
-func InitCommand(cmd *commander.Command, args []string) {
+func InitCommand() {
 	maxCPUs := runtime.NumCPU()
 	if CPUs > maxCPUs {
 		log.Printf("Warning: Number of CPUs capped to all available (%d)", maxCPUs)
@@ -79,7 +78,7 @@ func NewAppWrapCommand(f func(cmd *commander.Command, args []string) error) func
 
 	wrapped := func(cmd *commander.Command, args []string) error {
 		// log.Println("Version", VERSION)
-		InitCommand(cmd, args)
+		InitCommand()
 		if CPUProfile != "" {
 			f, err := os.Create(CPUProfile)
 			if err != nil {

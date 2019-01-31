@@ -27,6 +27,8 @@ import (
 )
 
 var (
+	JointFeaturesFile			string
+	JointModelFile				string
 	JointStrategy, OracleStrategy string
 	limitdev                      int
 	hebMACompat                   bool
@@ -35,10 +37,10 @@ var (
 func SetupEnum(relations []string) {
 	SetupRelationEnum(relations)
 	SetupMorphTransEnum(relations)
-	EWord, EPOS, EWPOS = util.NewEnumSet(APPROX_WORDS, "EWord"), util.NewEnumSet(APPROX_POS, "EPOS"), util.NewEnumSet(APPROX_WORDS*5, "EWPOS")
-	EMHost, EMSuffix = util.NewEnumSet(APPROX_MHOSTS, "EMHost"), util.NewEnumSet(APPROX_MSUFFIXES, "EMSuffix")
-	EMorphProp = util.NewEnumSet(130, "EMorphProp") // random guess of number of possible values
-	ETokens = util.NewEnumSet(10000, "ETokens")     // random guess of number of possible values
+	EWord, EPOS, EWPOS = util.NewEnumSet(APPROX_WORDS), util.NewEnumSet(APPROX_POS), util.NewEnumSet(APPROX_WORDS*5)
+	EMHost, EMSuffix = util.NewEnumSet(APPROX_MHOSTS), util.NewEnumSet(APPROX_MSUFFIXES)
+	EMorphProp = util.NewEnumSet(130) // random guess of number of possible values
+	ETokens = util.NewEnumSet(10000)  // random guess of number of possible values
 	// adding empty string as an element in the morph enum sets so that '0' default values
 	// map to empty morphs
 	EMHost.Add("")
@@ -98,40 +100,48 @@ func JointConfigOut(outModelFile string, b search.Interface, t transition.Transi
 	log.Printf("Iterations:\t\t%d", Iterations)
 	log.Printf("Beam Size:\t\t%d", BeamSize)
 	log.Printf("Beam Concurrent:\t%v", ConcurrentBeam)
-	log.Printf("Parameter Func:\t%v", paramFuncName)
+	log.Printf("Parameter Func:\t%v", MdParamFuncName)
 	log.Printf("Use Lemmas:\t\t%v", !lattice.IGNORE_LEMMA)
 	log.Printf("Use POP:\t\t%v", UsePOP)
-	log.Printf("Infuse Gold Dev:\t%v", combineGold)
+	log.Printf("Infuse Gold Dev:\t%v", MdCombineGold)
 	log.Printf("Limit (thousands):\t%v", limit)
 	log.Printf("Use CoNLL-U:\t\t%v", useConllU)
 	// log.Printf("Model file:\t\t%s", outModelFile)
 
 	log.Println()
-	log.Printf("Features File:\t%s", featuresFile)
-	if !VerifyExists(featuresFile) {
+	log.Printf("Features File:\t%s", JointFeaturesFile)
+	if !VerifyExists(JointFeaturesFile) {
 		os.Exit(1)
 	}
-	log.Printf("Labels File:\t\t%s", labelsFile)
-	if !VerifyExists(labelsFile) {
+	log.Printf("Labels File:\t\t%s", DepLabelsFile)
+	if !VerifyExists(DepLabelsFile) {
 		os.Exit(1)
 	}
 	log.Println()
 	log.Println("Data")
-	log.Printf("Train file (conll):\t\t\t%s", tConll)
-	if !VerifyExists(tConll) {
-		return
+	if len(tConll) > 0 {
+		log.Printf("Train file (conll):\t\t\t%s", tConll)
+		if !VerifyExists(tConll) {
+			return
+		}
 	}
-	log.Printf("Train file (disamb. lattice):\t%s", tLatDis)
-	if !VerifyExists(tLatDis) {
-		return
+	if len(tLatDis) > 0 {
+		log.Printf("Train file (disamb. lattice):\t%s", tLatDis)
+		if !VerifyExists(tLatDis) {
+			return
+		}
 	}
-	log.Printf("Train file (ambig.  lattice):\t%s", tLatAmb)
-	if !VerifyExists(tLatAmb) {
-		return
+	if len(tLatAmb) > 0 {
+		log.Printf("Train file (ambig.  lattice):\t%s", tLatAmb)
+		if !VerifyExists(tLatAmb) {
+			return
+		}
 	}
-	log.Printf("Test file  (ambig.  lattice):\t%s", input)
-	if !VerifyExists(input) {
-		return
+	if len(input) > 0 {
+		log.Printf("Test file  (ambig.  lattice):\t%s", input)
+		if !VerifyExists(input) {
+			return
+		}
 	}
 	if len(inputGold) > 0 {
 		log.Printf("Test file  (disambig.  lattice):\t%s", inputGold)
@@ -139,17 +149,25 @@ func JointConfigOut(outModelFile string, b search.Interface, t transition.Transi
 			return
 		}
 	}
-	log.Printf("Out (disamb.) file:\t\t\t%s", outConll)
-	log.Printf("Out (segmt.) file:\t\t\t%s", outSeg)
-	log.Printf("Out (mapping.) file:\t\t\t%s", outMap)
-	log.Printf("Out Train (segmt.) file:\t\t%s", tSeg)
+	if len(outConll) > 0 {
+		log.Printf("Out (disamb.) file:\t\t\t%s", outConll)
+	}
+	if len(outSeg) > 0 {
+		log.Printf("Out (segmt.) file:\t\t\t%s", outSeg)
+	}
+	if len(outMap) > 0 {
+		log.Printf("Out (mapping.) file:\t\t\t%s", outMap)
+	}
+	if len(tSeg) > 0 {
+		log.Printf("Out Train (segmt.) file:\t\t%s", tSeg)
+	}
 }
 
 func JointTrainAndParse(cmd *commander.Command, args []string) error {
 	// *** SETUP ***
-	paramFunc, exists := nlp.MDParams[paramFuncName]
+	paramFunc, exists := nlp.MDParams[MdParamFuncName]
 	if !exists {
-		log.Fatalln("Param Func", paramFuncName, "does not exist")
+		log.Fatalln("Param Func", MdParamFuncName, "does not exist")
 	}
 
 	mdTrans := &disambig.MDTrans{
@@ -163,7 +181,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		terminalStack int
 	)
 
-	switch arcSystemStr {
+	switch DepArcSystemStr {
 	case "standard":
 		arcSystem = &ArcStandard{}
 		terminalStack = 1
@@ -187,7 +205,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 	jointTrans.Oracle().(*joint.JointOracle).OracleStrategy = OracleStrategy
 	transitionSystem := transition.TransitionSystem(jointTrans)
 
-	outModelFile := modelFile
+	outModelFile := JointModelFile
 	modelExists := VerifyExists(outModelFile)
 	REQUIRED_FLAGS := []string{"in", "oc", "om", "os", "f", "l", "jointstr", "oraclestr"}
 	VerifyFlags(cmd, REQUIRED_FLAGS)
@@ -207,9 +225,9 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 
 	JointConfigOut(outModelFile, confBeam, transitionSystem)
 
-	relations, err := conf.ReadFile(labelsFile)
+	relations, err := conf.ReadFile(DepLabelsFile)
 	if err != nil {
-		log.Println("Failed reading dependency labels configuration file:", labelsFile)
+		log.Println("Failed reading dependency labels configuration file:", DepLabelsFile)
 		log.Fatalln(err)
 	}
 	if allOut {
@@ -222,7 +240,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 	// after calling SetupEnum, enums are instantiated and set according to the relations
 	// therefore we re-instantiate the arc system with the right parameters
 	// DON'T REMOVE!!
-	switch arcSystemStr {
+	switch DepArcSystemStr {
 	case "standard":
 		arcSystem = &ArcStandard{
 			SHIFT:       SH.Value(),
@@ -267,9 +285,9 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		log.Println()
 		log.Println("Loading features")
 	}
-	featureSetup, err := transition.LoadFeatureConfFile(featuresFile)
+	featureSetup, err := transition.LoadFeatureConfFile(JointFeaturesFile)
 	if err != nil {
-		log.Println("Failed reading feature configuration file:", featuresFile)
+		log.Println("Failed reading feature configuration file:", JointFeaturesFile)
 		log.Fatalln(err)
 	}
 	// M - MD
@@ -279,13 +297,6 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 	groups := []byte("MPLA")
 	extractor := SetupExtractor(featureSetup, groups)
 
-	formatters := make([]util.Format, 0, 100)
-	for _, g := range groups {
-		group, _ := extractor.TransTypeGroups[g]
-		for _, formatter := range group.FeatureTemplates {
-			formatters = append(formatters, formatter)
-		}
-	}
 	log.Println()
 	if useConllU {
 		nlp.InitOpenParamFamily("UD")
@@ -362,7 +373,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 			lAmbE error
 		)
 		if useConllU {
-			lAmb, lAmbE = lattice.ReadULFile(tLatAmb, limit)
+			lAmb, lAmbE = lattice.ReadUDFile(tLatAmb, limit)
 		} else {
 			lAmb, lAmbE = lattice.ReadFile(tLatAmb, limit)
 		}
@@ -401,6 +412,13 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 			log.Println()
 			// util.LogMemory()
 			log.Println("Training", Iterations, "iteration(s)")
+		}
+		formatters := make([]util.Format, 0, 100)
+		for _, g := range groups {
+			group, _ := extractor.TransTypeGroups[g]
+			for _, formatter := range group.FeatureTemplates {
+				formatters = append(formatters, formatter)
+			}
 		}
 		model := transitionmodel.NewAvgMatrixSparse(NumFeatures, formatters, false)
 		model.Extractor = extractor
@@ -461,7 +479,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		}
 
 		var evaluator perceptron.StopCondition
-		if len(inputGold) > 0 && !noconverge {
+		if len(inputGold) > 0 && !MdNoconverge {
 			var (
 				convCombined []interface{}
 				convDisLat   []interface{}
@@ -516,7 +534,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 				lConvAmbE error
 			)
 			if useConllU {
-				lConvAmb, lConvAmbE = lattice.ReadULFile(input, limitdev)
+				lConvAmb, lConvAmbE = lattice.ReadUDFile(input, limitdev)
 			} else {
 				lConvAmb, lConvAmbE = lattice.ReadFile(input, limitdev)
 			}
@@ -531,7 +549,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 				log.Println("Converting lattice format to internal structure")
 			}
 			convAmbLat = lattice.Lattice2SentenceCorpus(lConvAmb, EWord, EPOS, EWPOS, EMorphProp, EMHost, EMSuffix)
-			if combineGold {
+			if MdCombineGold {
 				var devMissingGold, devSentMissingGold, devLattices int
 				convCombined, devMissingGold, devLattices, devSentMissingGold = CombineLatticesCorpus(convDisLat, convAmbLat)
 				log.Println("Combined", len(convCombined), "graphs, with", devMissingGold, "lattices of", devLattices, "missing at least one gold path in lattice in", devSentMissingGold, "sentences")
@@ -576,7 +594,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 					log.Println("Converting lattice format to internal structure")
 				}
 				testAmbLat = lattice.Lattice2SentenceCorpus(lConvAmb, EWord, EPOS, EWPOS, EMorphProp, EMHost, EMSuffix)
-				if combineGold {
+				if MdCombineGold {
 					var devMissingGold, devSentMissingGold, devLattices int
 					testCombined, devMissingGold, devLattices, devSentMissingGold = CombineLatticesCorpus(testDisLat, testAmbLat)
 					log.Println("Combined", len(testCombined), "graphs, with", devMissingGold, "lattices of", devLattices, "missing at least one gold path in lattice in", devSentMissingGold, "sentences")
@@ -592,7 +610,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 			// TODO: replace nil param with test sentences
 			evaluator = MakeJointEvalStopCondition(convAmbLat, convCombined, testAmbLat, testCombined, decodeTestBeam, perceptron.InstanceDecoder(deterministic), BeamSize)
 		}
-		_ = Train(goldSequences, Iterations, modelFile, model, perceptron.EarlyUpdateInstanceDecoder(beam), perceptron.InstanceDecoder(deterministic), evaluator)
+		_ = Train(goldSequences, Iterations, JointModelFile, model, perceptron.EarlyUpdateInstanceDecoder(beam), perceptron.InstanceDecoder(deterministic), evaluator)
 		search.AllOut = false
 		if allOut {
 			log.Println("Done Training")
@@ -615,12 +633,11 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		}
 		serialization := ReadModel(outModelFile)
 		model.Deserialize(serialization.WeightModel)
-		model.Formatters = formatters
 		EWord, EPOS, EWPOS, EMHost, EMSuffix, EMorphProp, ETrans, ETokens = serialization.EWord, serialization.EPOS, serialization.EWPOS, serialization.EMHost, serialization.EMSuffix, serialization.EMorphProp, serialization.ETrans, serialization.ETokens
 		if allOut && !parseOut {
 			log.Println("Loaded model")
 		}
-		switch arcSystemStr {
+		switch DepArcSystemStr {
 		case "standard":
 			arcSystem = &ArcStandard{
 				SHIFT:       SH.Value(),
@@ -672,7 +689,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		lAmbE error
 	)
 	if useConllU {
-		lAmb, lAmbE = lattice.ReadULFile(input, limit)
+		lAmb, lAmbE = lattice.ReadUDFile(input, limit)
 	} else {
 		lAmb, lAmbE = lattice.ReadFile(input, limit)
 	}
@@ -694,7 +711,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 			lDisE error
 		)
 		if useConllU {
-			lDis, lDisE = lattice.ReadULFile(inputGold, limit)
+			lDis, lDisE = lattice.ReadUDFile(inputGold, limit)
 		} else {
 			lDis, lDisE = lattice.ReadFile(inputGold, limit)
 		}
@@ -804,8 +821,8 @@ runs morpho-syntactic training and parsing
 	cmd.Flag.BoolVar(&ConcurrentBeam, "bconc", true, "Concurrent Beam")
 	cmd.Flag.IntVar(&Iterations, "it", 1, "Number of Perceptron Iterations")
 	cmd.Flag.IntVar(&BeamSize, "b", 64, "Beam Size")
-	cmd.Flag.StringVar(&modelFile, "m", "model", "Prefix for model file ({m}.b{b}.i{it}.model)")
-	cmd.Flag.StringVar(&arcSystemStr, "a", "eager", "Optional - Arc System [standard, eager]")
+	cmd.Flag.StringVar(&JointModelFile, "m", "model", "Prefix for model file ({m}.b{b}.i{it}.model)")
+	cmd.Flag.StringVar(&DepArcSystemStr, "a", "eager", "Optional - Arc System [standard, eager]")
 
 	cmd.Flag.StringVar(&tConll, "tc", "", "Training Conll File")
 	cmd.Flag.StringVar(&tLatDis, "td", "", "Training Disambiguated Lattices File")
@@ -818,18 +835,18 @@ runs morpho-syntactic training and parsing
 	cmd.Flag.StringVar(&outSeg, "os", "", "Output Segmentation File")
 	cmd.Flag.StringVar(&outMap, "om", "", "Output Mapping File")
 	cmd.Flag.StringVar(&tSeg, "ots", "", "Output Training Segmentation File")
-	cmd.Flag.StringVar(&featuresFile, "f", "", "Features Configuration File")
-	cmd.Flag.StringVar(&labelsFile, "l", "", "Dependency Labels Configuration File")
-	cmd.Flag.StringVar(&paramFuncName, "p", "Funcs_Main_POS_Both_Prop", "Param Func types: ["+nlp.AllParamFuncNames+"]")
+	cmd.Flag.StringVar(&JointFeaturesFile, "f", "", "Features Configuration File")
+	cmd.Flag.StringVar(&DepLabelsFile, "l", "", "Dependency Labels Configuration File")
+	cmd.Flag.StringVar(&MdParamFuncName, "p", "Funcs_Main_POS_Both_Prop", "Param Func types: ["+nlp.AllParamFuncNames+"]")
 	cmd.Flag.StringVar(&JointStrategy, "jointstr", "MDFirst", "Joint Strategy: ["+joint.JointStrategies+"]")
 	cmd.Flag.StringVar(&OracleStrategy, "oraclestr", "MDFirst", "Oracle Strategy: ["+joint.OracleStrategies+"]")
 	cmd.Flag.BoolVar(&search.AllOut, "showbeam", false, "Show candidates in beam")
 	cmd.Flag.BoolVar(&search.SHOW_ORACLE, "showoracle", false, "Show oracle transitions")
 	cmd.Flag.BoolVar(&search.ShowFeats, "showfeats", false, "Show features of candidates in beam")
-	cmd.Flag.BoolVar(&combineGold, "infusedev", false, "Infuse gold morphs into lattices for test corpus")
+	cmd.Flag.BoolVar(&MdCombineGold, "infusedev", false, "Infuse gold morphs into lattices for test corpus")
 	cmd.Flag.BoolVar(&UsePOP, "pop", true, "Add POP operation to MD")
 	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
-	cmd.Flag.BoolVar(&noconverge, "noconverge", false, "don't test convergence (run -it number of iterations)")
+	cmd.Flag.BoolVar(&MdNoconverge, "noconverge", false, "don't test convergence (run -it number of iterations)")
 	cmd.Flag.IntVar(&limit, "limit", 0, "limit training set (in thousands)")
 	cmd.Flag.IntVar(&limitdev, "limitdev", 0, "limit dev set (in thousands)")
 	cmd.Flag.BoolVar(&useConllU, "conllu", false, "use CoNLL-U-format input file (for disamb lattices)")
