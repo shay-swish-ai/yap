@@ -3,6 +3,7 @@ package app
 import (
 	"yap/eval"
 	"yap/nlp/format/conll"
+	"yap/nlp/format/lattice"
 	dep "yap/nlp/parser/dependency/transition"
 	"yap/util"
 	"yap/util/conf"
@@ -197,6 +198,6 @@ runs dependency eval
 	cmd.Flag.StringVar(&DepLabelsFile, "l", "", "Dependency Labels Configuration File")
 	cmd.Flag.StringVar(&input, "p", "", "Parse Result Conll File")
 	cmd.Flag.StringVar(&inputGold, "g", "", "Gold Conll File")
-	cmd.Flag.BoolVar(&conll.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
+	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
 	return cmd
 }

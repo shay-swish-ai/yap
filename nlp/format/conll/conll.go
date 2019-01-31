@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"yap/nlp/format/lattice"
+
 	// "log"
 	"os"
 	"sort"
@@ -30,7 +32,7 @@ const (
 
 var (
 	WORD_TYPE    = "form"
-	IGNORE_LEMMA bool
+	//IGNORE_LEMMA bool
 )
 
 type Features map[string]string
@@ -171,7 +173,7 @@ func ParseRow(record []string) (Row, error) {
 	}
 	row.Form = form
 
-	if !IGNORE_LEMMA {
+	if !lattice.IGNORE_LEMMA {
 		lemma := ParseString(record[2])
 		// if lemma == "" {
 		// 	return row, errors.New("Empty LEMMA field")
@@ -433,7 +435,7 @@ func Graph2Conll(graph nlp.LabeledDependencyGraph, eMHost, eMSuffix *util.EnumSe
 			panic("Got node of type other than TaggedDepNode")
 		}
 		posTag = taggedToken.RawPOS
-		if !IGNORE_LEMMA {
+		if !lattice.IGNORE_LEMMA {
 			lemma = taggedToken.RawLemma
 			if lemma == "" {
 				lemma = "_"

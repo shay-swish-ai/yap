@@ -28,7 +28,7 @@ var AppCommands = []*commander.Command{
 	DepCmd(),
 	MdCmd(),
 	JointCmd(),
-	MALearnCmd(),
+	//MALearnCmd(),
 	MACmd(),
 	HebMACmd(),
 	// ValidateMAGoldCmd(),
