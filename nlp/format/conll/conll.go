@@ -591,12 +591,15 @@ func MorphGraph2Conll(graph nlp.MorphDependencyGraph) Sentence {
 			headID = -1
 			depRel = "None"
 		}
+
 		row := Row{
 			ID:      i + 1,
 			Form:    node.Form,
+			Lemma:   node.Lemma,
 			CPosTag: node.CPOS,
 			PosTag:  node.POS,
 			Feats:   node.Features,
+			FeatStr: node.FeatureStr,
 			Head:    headID + 1,
 			DepRel:  depRel,
 		}

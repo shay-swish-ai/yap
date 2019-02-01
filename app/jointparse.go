@@ -110,13 +110,25 @@ func JointConfigOut(outModelFile string, b search.Interface, t transition.Transi
 
 	log.Println()
 	log.Printf("Features File:\t%s", JointFeaturesFile)
-	if !VerifyExists(JointFeaturesFile) {
+	outFeaturesFile := JointFeaturesFile
+	featuresExists := VerifyExists(outFeaturesFile)
+	if !featuresExists {
+		outFeaturesFile, featuresExists = util.LocateFile(outFeaturesFile, DEFAULT_CONF_DIRS)
+	}
+	if !featuresExists {
 		os.Exit(1)
 	}
+	JointFeaturesFile = outFeaturesFile
 	log.Printf("Labels File:\t\t%s", DepLabelsFile)
-	if !VerifyExists(DepLabelsFile) {
+	outLabelsFile := DepLabelsFile
+	labelsExists := VerifyExists(outLabelsFile)
+	if !labelsExists {
+		outLabelsFile, labelsExists = util.LocateFile(outLabelsFile, DEFAULT_CONF_DIRS)
+	}
+	if !labelsExists {
 		os.Exit(1)
 	}
+	DepLabelsFile = outLabelsFile
 	log.Println()
 	log.Println("Data")
 	if len(tConll) > 0 {
@@ -207,7 +219,10 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 
 	outModelFile := JointModelFile
 	modelExists := VerifyExists(outModelFile)
-	REQUIRED_FLAGS := []string{"in", "oc", "om", "os", "f", "l", "jointstr", "oraclestr"}
+	if !modelExists {
+		outModelFile, modelExists = util.LocateFile(outModelFile, DEFAULT_MODEL_DIRS)
+	}
+	REQUIRED_FLAGS := []string{"in", "oc", "om", "os"}
 	VerifyFlags(cmd, REQUIRED_FLAGS)
 
 	if !modelExists {
@@ -285,6 +300,7 @@ func JointTrainAndParse(cmd *commander.Command, args []string) error {
 		log.Println()
 		log.Println("Loading features")
 	}
+
 	featureSetup, err := transition.LoadFeatureConfFile(JointFeaturesFile)
 	if err != nil {
 		log.Println("Failed reading feature configuration file:", JointFeaturesFile)
@@ -821,7 +837,7 @@ runs morpho-syntactic training and parsing
 	cmd.Flag.BoolVar(&ConcurrentBeam, "bconc", true, "Concurrent Beam")
 	cmd.Flag.IntVar(&Iterations, "it", 1, "Number of Perceptron Iterations")
 	cmd.Flag.IntVar(&BeamSize, "b", 64, "Beam Size")
-	cmd.Flag.StringVar(&JointModelFile, "m", "model", "Prefix for model file ({m}.b{b}.i{it}.model)")
+	cmd.Flag.StringVar(&JointModelFile, "m", "joint_arc_zeager_model_temp_i33.b64", "Joint model name")
 	cmd.Flag.StringVar(&DepArcSystemStr, "a", "eager", "Optional - Arc System [standard, eager]")
 
 	cmd.Flag.StringVar(&tConll, "tc", "", "Training Conll File")
@@ -835,11 +851,11 @@ runs morpho-syntactic training and parsing
 	cmd.Flag.StringVar(&outSeg, "os", "", "Output Segmentation File")
 	cmd.Flag.StringVar(&outMap, "om", "", "Output Mapping File")
 	cmd.Flag.StringVar(&tSeg, "ots", "", "Output Training Segmentation File")
-	cmd.Flag.StringVar(&JointFeaturesFile, "f", "", "Features Configuration File")
-	cmd.Flag.StringVar(&DepLabelsFile, "l", "", "Dependency Labels Configuration File")
+	cmd.Flag.StringVar(&JointFeaturesFile, "f", "jointzeager.yaml", "Features Configuration File")
+	cmd.Flag.StringVar(&DepLabelsFile, "l", "hebtb.labels.conf", "Dependency Labels Configuration File")
 	cmd.Flag.StringVar(&MdParamFuncName, "p", "Funcs_Main_POS_Both_Prop", "Param Func types: ["+nlp.AllParamFuncNames+"]")
-	cmd.Flag.StringVar(&JointStrategy, "jointstr", "MDFirst", "Joint Strategy: ["+joint.JointStrategies+"]")
-	cmd.Flag.StringVar(&OracleStrategy, "oraclestr", "MDFirst", "Oracle Strategy: ["+joint.OracleStrategies+"]")
+	cmd.Flag.StringVar(&JointStrategy, "jointstr", "ArcGreedy", "Joint Strategy: ["+joint.JointStrategies+"]")
+	cmd.Flag.StringVar(&OracleStrategy, "oraclestr", "ArcGreedy", "Oracle Strategy: ["+joint.OracleStrategies+"]")
 	cmd.Flag.BoolVar(&search.AllOut, "showbeam", false, "Show candidates in beam")
 	cmd.Flag.BoolVar(&search.SHOW_ORACLE, "showoracle", false, "Show oracle transitions")
 	cmd.Flag.BoolVar(&search.ShowFeats, "showfeats", false, "Show features of candidates in beam")

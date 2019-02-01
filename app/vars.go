@@ -210,8 +210,8 @@ func SetupMorphTransEnum(relations []string) {
 func VerifyExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if err != nil {
-		log.Println("Error accessing file", filename)
-		log.Println(err)
+		//log.Println("Error accessing file", filename)
+		//log.Println(err)
 		return false
 	}
 	return true
