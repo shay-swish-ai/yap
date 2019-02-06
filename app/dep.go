@@ -655,7 +655,7 @@ runs dependency training/parsing
 	cmd.Flag.StringVar(&DepFeaturesFile, "f", "zhangnivre2011.yaml", "Features Configuration File")
 	cmd.Flag.StringVar(&DepLabelsFile, "l", "hebtb.labels.conf", "Dependency Labels Configuration File")
 	//cmd.Flag.BoolVar(&conll.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
-	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
+	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", true, "Ignore lemmas")
 	cmd.Flag.StringVar(&conll.WORD_TYPE, "wordtype", "form", "Word type [form, lemma, lemma+f (=lemma if present else form)]")
 	cmd.Flag.IntVar(&limit, "limit", 0, "limit training set")
 	cmd.Flag.BoolVar(&search.SHOW_ORACLE, "showoracle", false, "Show oracle transitions")

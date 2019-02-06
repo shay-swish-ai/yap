@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"yap/nlp/format/lattice"
+	//"yap/nlp/format/lattice"
 
 	// "log"
 	"os"
@@ -173,13 +173,13 @@ func ParseRow(record []string) (Row, error) {
 	}
 	row.Form = form
 
-	if !lattice.IGNORE_LEMMA {
+	//if !lattice.IGNORE_LEMMA {
 		lemma := ParseString(record[2])
 		// if lemma == "" {
 		// 	return row, errors.New("Empty LEMMA field")
 		// }
 		row.Lemma = lemma
-	}
+	//}
 
 	cpostag := ParseString(record[3])
 	if cpostag == "" {
@@ -435,14 +435,14 @@ func Graph2Conll(graph nlp.LabeledDependencyGraph, eMHost, eMSuffix *util.EnumSe
 			panic("Got node of type other than TaggedDepNode")
 		}
 		posTag = taggedToken.RawPOS
-		if !lattice.IGNORE_LEMMA {
+		//if !lattice.IGNORE_LEMMA {
 			lemma = taggedToken.RawLemma
 			if lemma == "" {
 				lemma = "_"
 			}
-		} else {
-			lemma = "_"
-		}
+		//} else {
+		//	lemma = "_"
+		//}
 
 		if node == nil {
 			panic("Can't find node")

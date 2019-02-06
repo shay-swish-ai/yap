@@ -861,7 +861,7 @@ runs morpho-syntactic training and parsing
 	cmd.Flag.BoolVar(&search.ShowFeats, "showfeats", false, "Show features of candidates in beam")
 	cmd.Flag.BoolVar(&MdCombineGold, "infusedev", false, "Infuse gold morphs into lattices for test corpus")
 	cmd.Flag.BoolVar(&UsePOP, "pop", true, "Add POP operation to MD")
-	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", false, "Ignore lemmas")
+	cmd.Flag.BoolVar(&lattice.IGNORE_LEMMA, "nolemma", true, "Ignore lemmas")
 	cmd.Flag.BoolVar(&MdNoconverge, "noconverge", false, "don't test convergence (run -it number of iterations)")
 	cmd.Flag.IntVar(&limit, "limit", 0, "limit training set (in thousands)")
 	cmd.Flag.IntVar(&limitdev, "limitdev", 0, "limit dev set (in thousands)")

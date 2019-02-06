@@ -154,12 +154,12 @@ The following instructions are for Linux but similarly this can be done on Windo
   - Set ``$GOPATH`` environment variable to your workspace: ``export GOPATH=path/to/yapproj``
   - In the workspace directory create the src subdirectory: ``mkdir src``
   - cd into the src directory ``cd src``
-- Clone the repository in the src folder of the workspace ``git clone git@github.com:OnlpLab/yap.git``
-- unzip the models ``bunzip2 data/*.bz2``
-- Build the application:
+- Clone the repository in the src folder of the workspace ``git clone https://github.com/OnlpLab/yap.git``
+- Unzip the models and build the application:
 
 ```console
 $ cd yap
+$ bunzip2 data/*.bz2
 $ go get .
 $ go build .
 $ ./yap

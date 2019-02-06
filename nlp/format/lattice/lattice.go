@@ -33,7 +33,7 @@ var (
 
 	_FUSIONAL_PREFIXES      = map[string]bool{"B": true, "K": true, "L": true}
 	ECMx_INSTANCES          = map[string]bool{"ECMW": true, "ECMI": true, "ECMH": true, "ECMM": true}
-	IGNORE_LEMMA            = false
+	IGNORE_LEMMA            = true
 	IGNORE_DUP              = true
 	WORD_TYPE               = "form"
 	IGNORE_NNP_FEATS        = false
@@ -291,10 +291,10 @@ func ParseULEdge(record []string) (*Edge, error) {
 	// }
 	row.Word = word
 
-	if !IGNORE_LEMMA {
+	//if !IGNORE_LEMMA {
 		lemma := ParseString(record[3])
 		row.Lemma = lemma
-	}
+	//}
 	// if lemma == "" {
 	// 	return row, errors.New("Empty LEMMA field")
 	// }
@@ -341,10 +341,10 @@ func ParseUDEdge(record []string) (*Edge, error) {
 	// }
 	row.Word = word
 
-	if !IGNORE_LEMMA {
+	//if !IGNORE_LEMMA {
 		lemma := ParseString(record[3])
 		row.Lemma = lemma
-	}
+	//}
 	// if lemma == "" {
 	// 	return row, errors.New("Empty LEMMA field")
 	// }
@@ -397,10 +397,10 @@ func ParseEdge(record []string) (*Edge, error) {
 	// }
 	row.Word = word
 
-	if !IGNORE_LEMMA {
+	//if !IGNORE_LEMMA {
 		lemma := ParseString(record[3])
 		row.Lemma = lemma
-	}
+	//}
 	// if lemma == "" {
 	// 	return row, errors.New("Empty LEMMA field")
 	// }
@@ -1325,9 +1325,9 @@ func Sentence2Lattice(lattice nlp.LatticeSentence, xliter8or xliter8.Interface) 
 		for _, m := range sentlat.Morphemes {
 			outForm := m.Form
 			outLemma := m.Lemma
-			if IGNORE_LEMMA {
-				outLemma = ""
-			}
+			//if IGNORE_LEMMA {
+			//	outLemma = ""
+			//}
 			if xliter8or != nil {
 				outForm = xliter8or.To(outForm)
 				outLemma = xliter8or.To(outLemma)
