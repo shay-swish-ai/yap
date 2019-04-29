@@ -1,7 +1,16 @@
 
-# YAP - Yet Another (natural language) Parser
+# <center>YAP - Yet Another (natural language) Parser<br>The building block for Hebrew NLP</center>
 
-- [YAP - Yet Another (natural language) Parser](#yap---yet-another--natural-language--parser)
+![Joint Morph-Syntactic Processing](screenshot.png)
+
+YAP was implemented to test the hypothesis on Joint Morpho-Syntactic Processing of Morphologically Rich Languages (MRLs) in a Transition Based Framework.
+The parser was written as part Amir More's MSc thesis at IDC Herzliya under the supervision of Dr. Reut Tsarfaty from the Open University of Israel.
+The models and training regimes have been tuned and improved by Amit Seker from the Open University.
+
+A live demo of parsing Hebrew texts is provided [here](http://onlp.openu.org.il/).
+
+YAP is currently supported as part of the ONLP lab tool kit.
+
   * [How it Works](#how-it-works)
     + [Input](#input)
     + [Output](#output)
@@ -17,22 +26,14 @@
   * [FAQ](#faq)
     + [1. Lattice file format](#1-lattice-file-format)
     + [2. CoNLL file format](#2-conll-file-format)
-    + [3. How to tokenize](#3-how-to-tokenize)
+    + [3. Morphological and dependency schemes](#3-morphological-and-dependency-schemes)
+    + [4. Tokenization](#4-tokenization)
+    + [5. Domain specific customization](#5-domain-specific-customization)
   * [Publications](#publications)
   * [Licensing Highlights](#licensing-highlights)
+  * [Reference](#reference)
   * [Citation](#citation)
   * [License](#license)
-  * [Contact](#contact)
-
-![Joint Morph-Syntactic Processing](screenshot.png)
-
-YAP is yet another parser written in Go. It was implemented to test the hypothesis on Joint Morpho-Syntactic Processing of Morphologically Rich Languages (MRLs) in a Transition Based Framework.
-The parser was written as part Amir More's MSc thesis at IDC Herzliya under the supervision of Dr. Reut Tsarfaty from the Open University of Israel.
-The models and training regimes have been tuned and improved by Amit Seker from the Open University.
-
-A live demo of parsing Hebrew texts is provided [here](http://onlp.openu.org.il/).
-
-YAP is no longer under development. It is currently supported as part of the ONLP lab tool kit.
 
 ## How it Works
 
@@ -43,7 +44,7 @@ one sequence suited in the context of the sentence.
 
 Morphological Disambiguation (MD) is particularly difficult in MRLs due significant morphological richness.
 
-YAP provides a framework (currently supporting Modern Hebrew) that does lexicon-based morphological analysis
+YAP provides a framework currently supporting Modern Hebrew that does lexicon-based morphological analysis
 followed by a joint morph-syntactic disambiguation and dependency parsing.
 
 ### Input
@@ -132,7 +133,7 @@ the corresponding line in the lattice file.
 
 ## Quick Start
 
-YAP can run on Windows, Linux and MacOS.
+YAP has been tested and verified to run on Windows, Linux and MacOS.
 
 **Windows users:** YAP doesn't handle Windows style text files that have [BOM](https://en.wikipedia.org/wiki/Byte_order_mark) marks and [CRLF](https://en.wikipedia.org/wiki/Newline) newlines.
 So if you're running on Windows and YAP doesn't work make sure you don't have CRLF line endings and no BOM mark.
@@ -213,69 +214,6 @@ $
     $ ./yap joint -in input.lattice -os output.segmentation -om output.mapping -oc output.conll
     ```
 
-#### Output Files
-
-1. Morphological Analysis:
-
-    ```console
-    $ cat input.lattice
-    0	1	גנן	גינן	VB	VB	gen=M|num=S|per=2|tense=IMPERATIVE	1
-    0	1	גנן	גן	NN	NN	gen=M|num=S|suf_gen=F|suf_num=P|suf_per=3	1
-    0	1	גנן	גנן	NN	NN	gen=M|num=S	1
-    0	1	גנן	גנן	NNT	NNT	gen=M|num=S	1
-    0	1	גנן	גינן	VB	VB	gen=M|num=S|per=3|tense=PAST	1
-    1	2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	2
-    2	3	דג	דג	BN	BN	gen=M|num=S|per=A	3
-    2	5	דגן	דגן	NNP	NNP	gen=M|num=S	3
-    2	5	דגן	דג	NN	NN	gen=M|num=S|suf_gen=F|suf_num=P|suf_per=3	3
-    2	5	דגן	דגן	NN	NN	gen=M|num=S	3
-    2	5	דגן	דגן	NNT	NNT	gen=M|num=S	3
-    3	4	את	את	POS	POS	_	3
-    4	5	הן	הן	S_PRN	S_PRN	gen=F|num=P|per=3	3
-    5	6	ב	ב	PREPOSITION	PREPOSITION	_	4
-    5	8	בגן	בגן	NNP	NNP	gen=M|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=P|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=S	4
-    5	8	בגן	בגן	NNP	NNP	gen=F|num=S	4
-    5	8	בגן	בגן	NNP	NNP	gen=F|gen=M|num=S	4
-    5	8	בגן	בגן	NNP	NNP	_	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=P	4
-    5	8	בגן	בגן	NN	NN	gen=F|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=F|num=P	4
-    6	8	גן	גן	NN	NN	gen=M|num=S	4
-    6	8	גן	גן	NNT	NNT	gen=M|num=S	4
-    6	7	ה	ה	DEF	DEF	_	4
-    7	8	גן	גן	NNT	NNT	gen=M|num=S	4
-    7	8	גן	גן	NN	NN	gen=M|num=S	4
-    8	9	.	_	yyDOT	yyDOT	_	5
-    ```
-
-2. Morphological Disambiguation:
-
-    ```console
-    $ cat output.mapping 
-    0	1	גנן	גנן	NN	NN	gen=M|num=S	1
-    1	2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	2
-    2	3	דגן	דגן	NN	NN	gen=M|num=S	3
-    3	4	ב	ב	PREPOSITION	PREPOSITION	_	4
-    4	5	ה	ה	DEF	DEF	_	4
-    5	6	גן	גן	NN	NN	gen=M|num=S	4
-    6	7	.	_	yyDOT	yyDOT	_	5
-    ```
-
-3. Dependency Tree:
-
-    ```console
-    $ cat output.conll
-    1	גנן	גנן	NN	NN	gen=M|num=S	2	subj	_	_
-    2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	0	ROOT	_	_
-    3	דגן	דגן	NN	NN	gen=M|num=S	2	obj	_	_
-    4	ב	ב	PREPOSITION	PREPOSITION		3	prepmod	_	_
-    5	ה	ה	DEF	DEF		6	def	_	_
-    6	גן	גן	NN	NN	gen=M|num=S	4	pobj	_	_
-    7	.		yyDOT	yyDOT		2	punct	_	_
-    ```
-
 ### Running YAP as a RESTful API server
 
 1. YAP can run as a server listening on port 8000:
@@ -299,52 +237,6 @@ $
 
     ```console
     $ curl -s -X GET -H 'Content-Type: application/json' -d'{"text": "גנן גידל דגן בגן  "}' localhost:8000/yap/heb/joint | jq '.ma_lattice, .md_lattice, .dep_tree' | sed -e 's/^.//' -e 's/.$//' -e 's/\\t/\t/g' -e 's/\\n/\n/g'
-    0	1	גנן	גינן	VB	VB	gen=M|num=S|per=2|tense=IMPERATIVE	1
-    0	1	גנן	גן	NN	NN	gen=M|num=S|suf_gen=F|suf_num=P|suf_per=3	1
-    0	1	גנן	גנן	NN	NN	gen=M|num=S	1
-    0	1	גנן	גנן	NNT	NNT	gen=M|num=S	1
-    0	1	גנן	גינן	VB	VB	gen=M|num=S|per=3|tense=PAST	1
-    1	2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	2
-    2	3	דג	דג	BN	BN	gen=M|num=S|per=A	3
-    2	5	דגן	דגן	NNP	NNP	gen=M|num=S	3
-    2	5	דגן	דג	NN	NN	gen=M|num=S|suf_gen=F|suf_num=P|suf_per=3	3
-    2	5	דגן	דגן	NN	NN	gen=M|num=S	3
-    2	5	דגן	דגן	NNT	NNT	gen=M|num=S	3
-    3	4	את	את	POS	POS	_	3
-    4	5	הן	הן	S_PRN	S_PRN	gen=F|num=P|per=3	3
-    5	6	ב	ב	PREPOSITION	PREPOSITION	_	4
-    5	8	בגן	בגן	NNP	NNP	gen=M|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=P|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=S	4
-    5	8	בגן	בגן	NNP	NNP	gen=F|num=S	4
-    5	8	בגן	בגן	NNP	NNP	gen=F|gen=M|num=S	4
-    5	8	בגן	בגן	NNP	NNP	_	4
-    5	8	בגן	בגן	NN	NN	gen=M|num=P	4
-    5	8	בגן	בגן	NN	NN	gen=F|num=S	4
-    5	8	בגן	בגן	NN	NN	gen=F|num=P	4
-    6	8	גן	גן	NN	NN	gen=M|num=S	4
-    6	8	גן	גן	NNT	NNT	gen=M|num=S	4
-    6	7	ה	ה	DEF	DEF	_	4
-    7	8	גן	גן	NNT	NNT	gen=M|num=S	4
-    7	8	גן	גן	NN	NN	gen=M|num=S	4
-    
-    
-    0	1	גנן	גנן	NN	NN	gen=M|num=S	1
-    1	2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	2
-    2	3	דגן	דגן	NN	NN	gen=M|num=S	3
-    3	4	ב	ב	PREPOSITION	PREPOSITION	_	4
-    4	5	ה	ה	DEF	DEF	_	4
-    5	6	גן	גן	NN	NN	gen=M|num=S	4
-    
-    
-    1	גנן	גנן	NN	NN	gen=M|num=S	2	subj	_	_
-    2	גידל	גידל	VB	VB	gen=M|num=S|per=3|tense=PAST	0	ROOT	_	_
-    3	דגן	דגן	NN	NN	gen=M|num=S	2	obj	_	_
-    4	ב	ב	PREPOSITION	PREPOSITION		3	prepmod	_	_
-    5	ה	ה	DEF	DEF		6	def	_	_
-    6	גן	גן	NN	NN	gen=M|num=S	4	pobj	_	_
-    7	.		yyDOT	yyDOT		2	punct	_	_
-    ```
 
 ## Joint vs Pipeline
 
@@ -402,9 +294,19 @@ Each line represents a node in the tree:
 - PHEAD: Projective head; Not relevant - YAP doesn't use it
 - PDEPREL: Dependency relation to the PHEAD; not relevant - YAP doesn't use it
 
-### 3. How to tokenize
+### 3. Morphological and dependency schemes
 
-As mentioned above, YAP expects the input as a list of tokens.
+The scheme that we use for POS  is basically the original scheme by Simaan et al. 
+http://www.cs.technion.ac.il/~winter/papers/tal.ps
+
+For the morphological features we used clearer names than Simaan: gen for gender, per for person, suf for suffix, etc, but it is the same.
+
+The dependency syntax labeled extend the old stanford dependency labels and is based on the scheme in this paper:
+http://www.tsarfaty.com/pdfs/acl13.pdf
+
+### 4. Tokenization
+
+As mentioned, YAP expects the input as a sequence of tokens.
 This means that the user is responsible for tokenization. The simplest and most straight forward tokenizaion can be done by simply separating words with white space between them.
 While this approach is fine for running a few test cases it might not work well in general.
 
@@ -413,20 +315,25 @@ Some tokenizers that are available and work with Modern Hebrew are:
 - [MILA](http://www.mila.cs.technion.ac.il/tools_token.html)
 - [Yoav Goldberg](https://www.cs.bgu.ac.il/~yoavg/software/hebtokenizer/)
 
+### 5. Domain specific customization
+
+When processing texts in specific domains such as the health or legal domains you might get bad parsing results. There's a good chance that it might be the case that certain words occur in those texts and that are either missing completely from the lexicon or they appear in the lexicon but without the relevant morphological breakdown. In such cases it is possible to edit the lexicon and add the corresponding words with the relevant morphological analyses.
+
 ## Publications
 
-A [paper on the morphological analysis and disambiguation aspect for Modern Hebrew
+[A paper on the morphological analysis and disambiguation aspect for Modern Hebrew
 and Universal Dependencies](http://www.aclweb.org/anthology/C/C16/C16-1033.pdf) was presented at COLING 2016.
-The complete joint morphosyntactic model, along with  benchmark experiments and error analysis are available in a TACL paper accepted for publication in 2018, to be uploaded soon. 
 
-yap was also used for parsing Hebrew, as well as many other languages, in the following academic studies:
+[The complete joint morphosyntactic model, along with  benchmark experiments and error analysis](https://www.aclweb.org/anthology/papers/Q/Q19/Q19-1003/) are available in a TACL paper accepted for publication in ACL 2019.
+
+YAP was also used for parsing Hebrew, as well as many other languages, in the following academic studies:
 
 - The ONLP lab at the CoNLL shared Task on Raw-to-Dependencies parsing at CoNLL 2017
 - [The ONLP lab at the CoNLL shared Task](http://aclweb.org/anthology/K18-2021) on Raw-to-Dependencies parsing at CoNLL 2018
 - [The Hebrew Universal Dependencies Treebank](http://aclweb.org/anthology/W18-6016) at UDW 2018
 - [Neural Sentiment Analysis for Hebrew](https://aclanthology.info/papers/C18-1190/c18-1190) at COLING 2018
 
-If you use yap for an academic publication, we'd appreciate a [note](reutts@openu.ac.il).
+If you use YAP for an academic publication, we'd appreciate a [note](reutts@openu.ac.il).
 
 ## Licensing Highlights
 
@@ -434,18 +341,30 @@ If you use yap for an academic publication, we'd appreciate a [note](reutts@open
 - The data and lexicon the parser uses belong to [MILA](http://www.mila.cs.technion.ac.il/) at the Technion
 - For *production* use, please check with Prof. Alon Itay from The technion data/lexicon license conditions.
 
+## Reference:
+
+Title: Joint Transition-Based Models for Morpho-Syntactic Parsing: Parsing Strategies for {MRL}s and a Case Study from Modern Hebrew
+Authors:  More, Amir and Seker, Amit and Basmova, Victoria  and Tsarfaty, Reut
+Published: Transactions of the Association for Computational Linguistics, MIT Press, March 2019
+
 ## Citation
 
 If you make use of this software for research, we would appreciate the following citation:
 
 ```console
-@InProceedings{moretsarfatycoling2016,
-  author = {Amir More and Reut Tsarfaty},
-  title = {Data-Driven Morphological Analysis and Disambiguation for Morphologically Rich Languages and Universal Dependencies},
-  booktitle = {Proceedings of COLING 2016},
-  year = {2016},
-  month = {december},
-  location = {Osaka}
+@article{more-etal-2019-joint,
+    title = "Joint Transition-Based Models for Morpho-Syntactic Parsing: Parsing Strategies for {MRL}s and a Case Study from Modern {H}ebrew",
+    author = "More, Amir  and
+      Seker, Amit  and
+      Basmova, Victoria  and
+      Tsarfaty, Reut",
+    journal = "Transactions of the Association for Computational Linguistics",
+    volume = "7",
+    month = mar,
+    year = "2019",
+    url = "https://www.aclweb.org/anthology/Q19-1003",
+    doi = "10.1162/tacl_a_00253",
+    pages = "33--48"
 }
 ```
 
@@ -475,5 +394,3 @@ HEBLEX, a Morphological Analyzer for Modern Hebrew in yap, relies on a slightly 
 This software is released under the terms of the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 The Apache license does not apply to the BGU Lexicon. Please contact Reut Tsarfaty regarding licensing of the lexicon.
-
-## Contact
