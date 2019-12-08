@@ -7,7 +7,7 @@ YAP was implemented to test the hypothesis on Joint Morpho-Syntactic Processing 
 The parser was written as part Amir More's MSc thesis at IDC Herzliya under the supervision of Dr. Reut Tsarfaty from the Open University of Israel.
 The models and training regimes have been tuned and improved by Amit Seker from the Open University.
 
-A live demo of parsing Hebrew texts is provided [here](http://onlp.openu.org.il/).
+A live demo of parsing Hebrew texts is provided [here](http://nlp.biu.ac.il/~rtsarfaty/onlp/hebrew/).
 
 YAP is currently supported as part of the ONLP lab tool kit.
 
