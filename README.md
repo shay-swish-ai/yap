@@ -237,6 +237,18 @@ $
 
     ```console
     $ curl -s -X GET -H 'Content-Type: application/json' -d'{"text": "גנן גידל דגן בגן  "}' localhost:8000/yap/heb/joint | jq '.ma_lattice, .md_lattice, .dep_tree' | sed -e 's/^.//' -e 's/.$//' -e 's/\\t/\t/g' -e 's/\\n/\n/g'
+    ```
+
+    When sending the request from a Python client, try using this code:
+    ```python
+    import requests
+    text = 'גנן גידל דגן בגן'
+    localhost_yap = "http://localhost:8000/yap/heb/joint"
+    data = '{{"text": "{}  "}}'.format(text).encode('utf-8')
+    headers = {'content-type': 'application/json'}
+    response = requests.get(url=localhost_yap, data=data, headers=headers)
+    json_response = response.json()
+    ```
 
 ## Joint vs Pipeline
 
