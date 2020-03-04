@@ -222,7 +222,7 @@ $
     $ ./yap api
     ```
 
-2. You can then send HTTP GET requests with json objects in the request body and receive back a json object containing the 3 output levels:
+2. You can then send HTTP GET requests with json objects in the request body, **pay attention that the input string should end with two space characters**. You'll receive back a json object containing the 3 output levels:
 
     ```console
     $ curl -s -X GET -H 'Content-Type: application/json' -d'{"text": "גנן גידל דגן בגן  "}' localhost:8000/yap/heb/joint | jq .
@@ -244,7 +244,7 @@ $
     import requests
     text = 'גנן גידל דגן בגן'
     localhost_yap = "http://localhost:8000/yap/heb/joint"
-    data = '{{"text": "{}  "}}'.format(text).encode('utf-8')
+    data = '{{"text": "{}  "}}'.format(text).encode('utf-8')  # input string ends with two space characters
     headers = {'content-type': 'application/json'}
     response = requests.get(url=localhost_yap, data=data, headers=headers)
     json_response = response.json()
