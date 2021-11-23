@@ -144,7 +144,7 @@ So if you're running on Windows and YAP doesn't work make sure you don't have CR
 
 ### Requirements
 
-- [Go](http://www.golang.org)
+- [Go](https://go.dev/dl/) (use Go 1.11.2 for Windows and MacOS, and Go 1.13 for linux)
 - [Git](https://git-scm.com/downloads)
 - bzip2
 - 6GB RAM
