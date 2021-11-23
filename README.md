@@ -134,6 +134,8 @@ the corresponding line in the lattice file.
 ## Quick Start
 
 YAP has been tested and verified to run on Windows, Linux and MacOS.
+**For YAP to run on Windows and MacOS, GO 1.11.2 is required.
+**For YAP on Linux, Go 1.13 should be used.
 
 **Windows users:** YAP doesn't handle Windows style text files that have [BOM](https://en.wikipedia.org/wiki/Byte_order_mark) marks and [CRLF](https://en.wikipedia.org/wiki/Newline) newlines.
 So if you're running on Windows and YAP doesn't work make sure you don't have CRLF line endings and no BOM mark.
