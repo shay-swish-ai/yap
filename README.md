@@ -135,7 +135,7 @@ the corresponding line in the lattice file.
 
 YAP has been tested and verified to run on Windows, Linux and MacOS.
 
-**For YAP to run on Windows and MacOS, GO 1.11.2 is required.**
+**For YAP to run on Windows and MacOS, Go 1.11.2 is required.**
 
 **For YAP on Linux, Go 1.13 should be used.**
 
