@@ -25,28 +25,33 @@ import (
 )
 
 var (
-	MdParamFuncName  string
-	MdUseWB          bool
-	MdCombineGold    bool
-	MdNoconverge     bool
-	MdModelName    string
-	MdModelFile    string
-	MdFeaturesFile string
+	MdParamFuncName string
+	MdUseWB         bool
+	MdCombineGold   bool
+	MdNoconverge    bool
+	MdModelName     string
+	MdModelFile     string
+	MdFeaturesFile  string
 	//MdBeamSize     int
 )
 
 func SetupMDEnum() {
 	EWord, EPOS, EWPOS = util.NewEnumSet(APPROX_WORDS), util.NewEnumSet(APPROX_POS), util.NewEnumSet(APPROX_WORDS*5)
 	EMHost, EMSuffix = util.NewEnumSet(APPROX_MHOSTS), util.NewEnumSet(APPROX_MSUFFIXES)
-
+	EMorphProp = util.NewEnumSet(130) // random guess of number of possible values
+	ETokens = util.NewEnumSet(10000)
 	ETrans = util.NewEnumSet(10000)
 	_, _ = ETrans.Add("IDLE") // dummy no action transition for zpar equivalence
 	iPOP, _ := ETrans.Add("POP")
-
 	POP = &transition.TypedTransition{'P', iPOP}
 
-	EMorphProp = util.NewEnumSet(10000) // random guess of number of possible values
-	ETokens = util.NewEnumSet(10000)
+	MdEWord, MdEPOS, MdEWPOS = util.NewEnumSet(APPROX_WORDS), util.NewEnumSet(APPROX_POS), util.NewEnumSet(APPROX_WORDS*5)
+	MdEMHost, MdEMSuffix = util.NewEnumSet(APPROX_MHOSTS), util.NewEnumSet(APPROX_MSUFFIXES)
+	MdEMorphProp = util.NewEnumSet(130) // random guess of number of possible values
+	MdETokens = util.NewEnumSet(10000)
+	MdETrans = util.NewEnumSet(10000)
+	MdETrans.Add("IDLE") // dummy no action transition for zpar equivalence
+	MdETrans.Add("POP")
 }
 
 func CombineToGoldMorph(goldLat, ambLat nlp.LatticeSentence) (m *disambig.MDConfig, spelloutsAdded int) {
@@ -135,15 +140,15 @@ func CombineLatticesCorpus(goldLats, ambLats []interface{}) ([]interface{}, int,
 	return configs, numLatticeNoGold, totalLattices, numSentNoGold
 }
 
-func conllul2Lattices(cls []conllul.ConlluLattice) ([]lattice.Lattice) {
+func conllul2Lattices(cls []conllul.ConlluLattice) []lattice.Lattice {
 	result := []lattice.Lattice{}
 	for _, cl := range cls {
-		result = append(result, conllul2Lattice(cl));
+		result = append(result, conllul2Lattice(cl))
 	}
-	return result;
+	return result
 }
 
-func conllul2Lattice(cl conllul.ConlluLattice) (lattice.Lattice) {
+func conllul2Lattice(cl conllul.ConlluLattice) lattice.Lattice {
 	result := make(lattice.Lattice)
 	for _, v := range cl.Edges {
 		for _, ce := range v {
@@ -169,7 +174,6 @@ func conllul2Lattice(cl conllul.ConlluLattice) (lattice.Lattice) {
 	}
 	return result
 }
-
 
 func MDConfigOut(outModelFile string, b search.Interface, t transition.TransitionSystem) {
 	log.Println("Configuration")
@@ -473,11 +477,11 @@ func MDTrainAndParse(cmd *commander.Command, args []string) error {
 		}
 
 		var (
-			lConvAmb []lattice.Lattice
-			lConvAmbE error
+			lConvAmb     []lattice.Lattice
+			lConvAmbE    error
 			convCombined []interface{}
-			convDisLat []interface{}
-			convAmbLat []interface{}
+			convDisLat   []interface{}
+			convAmbLat   []interface{}
 		)
 
 		if len(inputGold) > 0 {
@@ -736,9 +740,9 @@ func MDTrainAndParse(cmd *commander.Command, args []string) error {
 		return nil
 	}
 	var (
-		lAmb  lattice.Lattices
-		lAmbE error
-		clAmb []conllul.ConlluLattice
+		lAmb   lattice.Lattices
+		lAmbE  error
+		clAmb  []conllul.ConlluLattice
 		clAmbE error
 	)
 	if useConllU {

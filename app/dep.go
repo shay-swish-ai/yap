@@ -27,7 +27,7 @@ var (
 	DepModelName    string
 	DepFeaturesFile string
 	DepLabelsFile   string
-	DepModelFile   string
+	DepModelFile    string
 	//DepBeamSize   int
 	DepArcSystemStr string
 )
@@ -42,6 +42,14 @@ func SetupDepEnum(relations []string) {
 	// map to empty morphs
 	EMHost.Add("")
 	EMSuffix.Add("")
+
+	DepEWord, DepEPOS, DepEWPOS = util.NewEnumSet(APPROX_WORDS), util.NewEnumSet(APPROX_POS), util.NewEnumSet(APPROX_WORDS*WORDS_POS_FACTOR)
+	DepEMHost, DepEMSuffix = util.NewEnumSet(APPROX_MHOSTS), util.NewEnumSet(APPROX_MSUFFIXES)
+	DepEMorphProp = util.NewEnumSet(130) // random guess of number of possible values
+	// adding empty string as an element in the morph enum sets so that '0' default values
+	// map to empty morphs
+	DepEMHost.Add("")
+	DepEMSuffix.Add("")
 }
 
 func EstimatedBeamTransitions() int {

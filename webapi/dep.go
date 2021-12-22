@@ -1,22 +1,22 @@
 package webapi
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/gonuts/commander"
 	"log"
-	"yap/nlp/format/conll"
+	"strings"
+	"sync"
 	"yap/alg/search"
 	"yap/alg/transition"
-	"github.com/gonuts/commander"
-	"yap/util"
-	"fmt"
-	"yap/util/conf"
-	"yap/nlp/format/lattice"
-	"strings"
-	"yap/app"
 	transitionmodel "yap/alg/transition/model"
+	"yap/app"
+	"yap/nlp/format/conll"
+	"yap/nlp/format/lattice"
 	. "yap/nlp/parser/dependency/transition"
 	nlp "yap/nlp/types"
-	"bytes"
-	"sync"
+	"yap/util"
+	"yap/util/conf"
 )
 
 var (
@@ -26,7 +26,7 @@ var (
 
 func DepParserInitialize(cmd *commander.Command, args []string) {
 	var (
-		arcSystem transition.TransitionSystem
+		arcSystem     transition.TransitionSystem
 		terminalStack int
 	)
 	arcSystem = &ArcEager{}
@@ -59,13 +59,13 @@ func DepParserInitialize(cmd *commander.Command, args []string) {
 	app.SetupDepEnum(relations.Values)
 	arcSystem = &ArcEager{
 		ArcStandard: ArcStandard{
-			SHIFT: app.SH.Value(),
-			LEFT: app.LA.Value(),
-			RIGHT: app.RA.Value(),
-			Relations: app.ERel,
-			Transitions: app.ETrans,
+			SHIFT:       app.SH.Value(),
+			LEFT:        app.LA.Value(),
+			RIGHT:       app.RA.Value(),
+			Relations:   app.DepERel,
+			Transitions: app.DepETrans,
 		},
-		REDUCE: app.RE.Value(),
+		REDUCE:  app.RE.Value(),
 		POPROOT: app.PR.Value(),
 	}
 	arcSystem.AddDefaultOracle()
@@ -87,54 +87,54 @@ func DepParserInitialize(cmd *commander.Command, args []string) {
 	log.Println("Found model file", modelLocation, " ... loading model")
 	serialization := app.ReadModel(modelLocation)
 	model.Deserialize(serialization.WeightModel)
-	app.EWord = serialization.EWord
-	app.EPOS = serialization.EPOS
-	app.EWPOS = serialization.EWPOS
-	app.EMHost = serialization.EMHost
-	app.EMSuffix = serialization.EMSuffix
+	app.DepEWord = serialization.EWord
+	app.DepEPOS = serialization.EPOS
+	app.DepEWPOS = serialization.EWPOS
+	app.DepEMHost = serialization.EMHost
+	app.DepEMSuffix = serialization.EMSuffix
 	log.Println("Loaded model")
 
 	conf := &SimpleConfiguration{
-		EWord: app.EWord,
-		EPOS: app.EPOS,
-		EWPOS: app.EWPOS,
-		EMHost: app.EMHost,
-		EMSuffix: app.EMSuffix,
-		ERel: app.ERel,
-		ETrans: app.ETrans,
+		EWord:         app.DepEWord,
+		EPOS:          app.DepEPOS,
+		EWPOS:         app.DepEWPOS,
+		EMHost:        app.DepEMHost,
+		EMSuffix:      app.DepEMSuffix,
+		ERel:          app.DepERel,
+		ETrans:        app.DepETrans,
 		TerminalStack: terminalStack,
 		TerminalQueue: 0,
 	}
 
 	depBeam = &search.Beam{
-		TransFunc: transitionSystem,
-		FeatExtractor: extractor,
-		Base: conf,
-		Model: model,
-		Size: app.BeamSize,
-		ConcurrentExec: app.ConcurrentBeam,
-		ShortTempAgenda: true,
+		TransFunc:            transitionSystem,
+		FeatExtractor:        extractor,
+		Base:                 conf,
+		Model:                model,
+		Size:                 app.BeamSize,
+		ConcurrentExec:       app.ConcurrentBeam,
+		ShortTempAgenda:      true,
 		EstimatedTransitions: app.EstimatedBeamTransitions(),
-		ScoredStoreDense: true,
+		ScoredStoreDense:     true,
 	}
 }
 
 func DepParseDisambiguatedLattice(input string) string {
 	depLock.Lock()
 	log.Println("Reading disambiguated lattice")
-	log.Println("input:\n",input)
+	log.Println("input:\n", input)
 	reader := strings.NewReader(input)
 	lDisamb, lDisambE := lattice.Read(reader, 0)
 	if lDisambE != nil {
 		panic(fmt.Sprintf("Failed reading raw input - %v", lDisamb))
 	}
-	internalSents := lattice.Lattice2SentenceCorpus(lDisamb, app.EWord, app.EPOS, app.EWPOS, app.EMorphProp, app.EMHost, app.EMSuffix)
+	internalSents := lattice.Lattice2SentenceCorpus(lDisamb, app.DepEWord, app.DepEPOS, app.DepEWPOS, app.DepEMorphProp, app.DepEMHost, app.DepEMSuffix)
 	sents := make([]interface{}, len(internalSents))
 	for i, instance := range internalSents {
 		sents[i] = instance.(nlp.LatticeSentence).TaggedSentence()
 	}
 	parsedGraphs := app.Parse(sents, depBeam)
-	graphAsConll := conll.Graph2ConllCorpus(parsedGraphs, app.EMHost, app.EMSuffix)
+	graphAsConll := conll.Graph2ConllCorpus(parsedGraphs, app.DepEMHost, app.DepEMSuffix)
 	buf := new(bytes.Buffer)
 	conll.Write(buf, graphAsConll)
 	depLock.Unlock()

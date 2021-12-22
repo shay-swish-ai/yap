@@ -44,21 +44,25 @@ var (
 
 	// processing options
 	//Iterations, BeamSize int
-	Iterations			int
-	BeamSize          int
-	ConcurrentBeam       bool
-	NumFeatures          int
-	UsePOP               bool
-	limit                int
-	Stream               bool
+	Iterations     int
+	BeamSize       int
+	ConcurrentBeam bool
+	NumFeatures    int
+	UsePOP         bool
+	limit          int
+	Stream         bool
 
 	// global enumerations
 	ERel, ETrans, EWord, EPOS, EWPOS, EMHost, EMSuffix *util.EnumSet
 	ETokens                                            *util.EnumSet
 	EMorphProp                                         *util.EnumSet
-	//DepERel, DepETrans, DepEWord, DepEPOS, DepEWPOS, DepEMHost, DepEMSuffix *util.EnumSet
-	//DepETokens                                            *util.EnumSet
-	//DepEMorphProp                                         *util.EnumSet
+
+	DepERel, DepETrans, DepEWord, DepEPOS, DepEWPOS, DepEMHost, DepEMSuffix *util.EnumSet
+	DepEMorphProp                                                           *util.EnumSet
+
+	MdETrans, MdEWord, MdEPOS, MdEWPOS, MdEMHost, MdEMSuffix *util.EnumSet
+	MdETokens                                                *util.EnumSet
+	MdEMorphProp                                             *util.EnumSet
 
 	// enumeration offsets of transitions
 	SH, RE, PR, LA, RA, IDLE, POP, MD transition.Transition
@@ -152,6 +156,16 @@ func SetupRelationEnum(labels []string) {
 		ERel.Add(nlp.DepRel(label))
 	}
 	ERel.Frozen = true
+
+	if DepERel != nil {
+		return
+	}
+	DepERel = util.NewEnumSet(len(labels) + 1)
+	DepERel.Add(nlp.DepRel(nlp.ROOT_LABEL))
+	for _, label := range labels {
+		DepERel.Add(nlp.DepRel(label))
+	}
+	DepERel.Frozen = true
 }
 
 func SetupTransEnum(relations []string) {
@@ -174,6 +188,22 @@ func SetupTransEnum(relations []string) {
 	ETrans.Add("RA-" + string(nlp.ROOT_LABEL))
 	for _, transition := range relations {
 		ETrans.Add("RA-" + string(transition))
+	}
+
+	DepETrans = util.NewEnumSet((len(relations)+1)*2 + 2)
+	DepETrans.Add("IDLE") // dummy no action transition for zpar equivalence
+	DepETrans.Add("SH")
+	DepETrans.Add("RE")
+	DepETrans.Add("AL") // dummy action transition for zpar equivalence
+	DepETrans.Add("AR") // dummy action transition for zpar equivalence
+	DepETrans.Add("PR")
+	DepETrans.Add("LA-" + string(nlp.ROOT_LABEL))
+	for _, transition := range relations {
+		DepETrans.Add("LA-" + string(transition))
+	}
+	DepETrans.Add("RA-" + string(nlp.ROOT_LABEL))
+	for _, transition := range relations {
+		DepETrans.Add("RA-" + string(transition))
 	}
 }
 
@@ -205,6 +235,23 @@ func SetupMorphTransEnum(relations []string) {
 	iPOP, _ := ETrans.Add("POP")
 	POP = &transition.TypedTransition{'P', iPOP}
 	MD = transition.ConstTransition(ETrans.Len())
+
+	MdETrans = util.NewEnumSet((len(relations)+1)*2 + 2 + APPROX_MORPH_TRANSITIONS)
+	MdETrans.Add("NO") // dummy for 0 action
+	MdETrans.Add("SH")
+	MdETrans.Add("RE")
+	MdETrans.Add("AL") // dummy action transition for zpar equivalence
+	MdETrans.Add("AR") // dummy action transition for zpar equivalence
+	MdETrans.Add("PR")
+	MdETrans.Add("LA-" + string(nlp.ROOT_LABEL))
+	for _, transition := range relations {
+		MdETrans.Add("LA-" + string(transition))
+	}
+	MdETrans.Add("RA-" + string(nlp.ROOT_LABEL))
+	for _, transition := range relations {
+		MdETrans.Add("RA-" + string(transition))
+	}
+	MdETrans.Add("POP")
 }
 
 func VerifyExists(filename string) bool {

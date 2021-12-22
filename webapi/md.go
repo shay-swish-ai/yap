@@ -1,21 +1,21 @@
 package webapi
 
 import (
-	"github.com/gonuts/commander"
-	"yap/nlp/parser/disambig"
-	"yap/nlp/format/lattice"
-	"log"
-	"yap/util"
+	"bytes"
 	"fmt"
-	"yap/alg/search"
+	"github.com/gonuts/commander"
+	"log"
 	"strings"
-	"yap/app"
+	"sync"
+	"yap/alg/search"
 	"yap/alg/transition"
 	transitionmodel "yap/alg/transition/model"
-	nlp "yap/nlp/types"
+	"yap/app"
+	"yap/nlp/format/lattice"
 	"yap/nlp/format/mapping"
-	"bytes"
-	"sync"
+	"yap/nlp/parser/disambig"
+	nlp "yap/nlp/types"
+	"yap/util"
 )
 
 var (
@@ -30,11 +30,11 @@ func MorphDisambiguatorInitialize(cmd *commander.Command, args []string) {
 	}
 	var (
 		mdTrans transition.TransitionSystem
-		model *transitionmodel.AvgMatrixSparse = &transitionmodel.AvgMatrixSparse{}
+		model   *transitionmodel.AvgMatrixSparse = &transitionmodel.AvgMatrixSparse{}
 	)
 	mdTrans = &disambig.MDTrans{
 		ParamFunc: paramFunc,
-		UsePOP: app.UsePOP,
+		UsePOP:    app.UsePOP,
 	}
 	disambig.UsePOP = app.UsePOP
 	transitionSystem := transition.TransitionSystem(mdTrans)
@@ -53,7 +53,7 @@ func MorphDisambiguatorInitialize(cmd *commander.Command, args []string) {
 	disambig.SwitchFormLemma = !lattice.IGNORE_LEMMA
 	app.SetupMDEnum()
 	mdTrans.(*disambig.MDTrans).POP = app.POP
-	mdTrans.(*disambig.MDTrans).Transitions = app.ETrans
+	mdTrans.(*disambig.MDTrans).Transitions = app.MdETrans
 	mdTrans.AddDefaultOracle()
 	featureSetup, err := transition.LoadFeatureConfFile(featuresLocation)
 	if err != nil {
@@ -67,39 +67,39 @@ func MorphDisambiguatorInitialize(cmd *commander.Command, args []string) {
 
 	serialization := app.ReadModel(modelLocation)
 	model.Deserialize(serialization.WeightModel)
-	app.EWord = serialization.EWord
-	app.EPOS = serialization.EPOS
-	app.EWPOS = serialization.EWPOS
-	app.EMHost = serialization.EMHost
-	app.EMSuffix = serialization.EMSuffix
-	app.EMorphProp = serialization.EMorphProp
-	app.ETrans = serialization.ETrans
-	app.ETokens = serialization.ETokens
+	app.MdEWord = serialization.EWord
+	app.MdEPOS = serialization.EPOS
+	app.MdEWPOS = serialization.EWPOS
+	app.MdEMHost = serialization.EMHost
+	app.MdEMSuffix = serialization.EMSuffix
+	app.MdEMorphProp = serialization.EMorphProp
+	app.MdETrans = serialization.ETrans
+	app.MdETokens = serialization.ETokens
 
 	mdTrans = &disambig.MDTrans{
-		ParamFunc: paramFunc,
-		UsePOP: app.UsePOP,
-		POP: app.POP,
-		Transitions: app.ETrans,
+		ParamFunc:   paramFunc,
+		UsePOP:      app.UsePOP,
+		POP:         app.POP,
+		Transitions: app.MdETrans,
 	}
 
 	transitionSystem = transition.TransitionSystem(mdTrans)
 	extractor = app.SetupExtractor(featureSetup, []byte("MPL"))
 
 	conf := &disambig.MDConfig{
-		ETokens: app.ETokens,
-		POP: app.POP,
-		Transitions: app.ETrans,
-		ParamFunc: paramFunc,
+		ETokens:     app.MdETokens,
+		POP:         app.POP,
+		Transitions: app.MdETrans,
+		ParamFunc:   paramFunc,
 	}
 
 	mdBeam = &search.Beam{
-		TransFunc: transitionSystem,
-		FeatExtractor: extractor,
-		Base: conf,
-		Size: app.BeamSize,
-		ConcurrentExec: app.ConcurrentBeam,
-		Transitions: app.ETrans,
+		TransFunc:            transitionSystem,
+		FeatExtractor:        extractor,
+		Base:                 conf,
+		Size:                 app.BeamSize,
+		ConcurrentExec:       app.ConcurrentBeam,
+		Transitions:          app.MdETrans,
 		EstimatedTransitions: 1000, // chosen by random dice roll
 	}
 	mdBeam.ShortTempAgenda = true
@@ -109,13 +109,13 @@ func MorphDisambiguatorInitialize(cmd *commander.Command, args []string) {
 func MorphDisambiguateLattices(input string) string {
 	mdLock.Lock()
 	log.Println("Reading ambiguous lattices")
-	log.Println("input:\n ",input)
+	log.Println("input:\n ", input)
 	reader := strings.NewReader(input)
 	lAmb, lAmbE := lattice.Read(reader, 0)
 	if lAmbE != nil {
 		panic(fmt.Sprintf("Failed reading raw input - %v", lAmbE))
 	}
-	predAmbLat := lattice.Lattice2SentenceCorpus(lAmb, app.EWord, app.EPOS, app.EWPOS, app.EMorphProp, app.EMHost, app.EMSuffix)
+	predAmbLat := lattice.Lattice2SentenceCorpus(lAmb, app.MdEWord, app.MdEPOS, app.MdEWPOS, app.MdEMorphProp, app.MdEMHost, app.MdEMSuffix)
 	mappings := app.Parse(predAmbLat, mdBeam)
 	buf := new(bytes.Buffer)
 	mapping.Write(buf, mappings)
