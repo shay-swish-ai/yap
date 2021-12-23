@@ -135,18 +135,18 @@ the corresponding line in the lattice file.
 
 YAP has been tested and verified to run on Windows, Linux and MacOS.
 
-**On Windows - use Go 1.11.**
+**On Windows - use Go 1.11**
 
-**On Linux - use Go 1.13.**
-
-**On MAC - use Go 1.15.**
+**On Linux and MacOS - use Go 1.15**
 
 **Windows users:** YAP doesn't handle Windows style text files that have [BOM](https://en.wikipedia.org/wiki/Byte_order_mark) marks and [CRLF](https://en.wikipedia.org/wiki/Newline) newlines.
 So if you're running on Windows and YAP doesn't work make sure you don't have CRLF line endings and no BOM mark.
 
+**Note: The input must be in UTF-8 encoding .**
+
 ### Requirements
 
-- [Go](https://go.dev/dl/) (use Go 1.11 for Windows, Go 1.13 for linux and Go 1.15 for MacOS)
+- [Go](https://go.dev/dl/) (Go 1.11 for Windows, Go 1.15 for linux and MacOS)
 - [Git](https://git-scm.com/downloads)
 - bzip2
 - 6GB RAM
